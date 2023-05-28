@@ -18,7 +18,7 @@ export class Reading {
   id: number;
 
   @CreateDateColumn()
-  createdAt: string;
+  createdAt: Date;
 
   @Column()
   type: string;

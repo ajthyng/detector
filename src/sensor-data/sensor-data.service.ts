@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateReadingDto } from '../dto/create-reading.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Reading } from '../entities/reading.entity';
-import { Repository } from 'typeorm';
+import { In, MoreThan, Repository } from 'typeorm';
 import { Subject } from 'rxjs';
 
 @Injectable()
@@ -15,18 +15,21 @@ export class SensorDataService {
     this.sensorDataSubject = new Subject();
   }
 
-  async getReadings() {
+  async getReadings(types: string[]) {
+    console.log(types);
     const [readings, count] = await this.readingRepository.findAndCount({
-      take: 1,
+      where: { type: In(types) },
     });
     return { readings, count };
   }
 
-  async recordReadings(createReadingDTO: CreateReadingDto) {
-    const result = await this.readingRepository.save(createReadingDTO);
-    this.sensorDataSubject.next(result);
+  async recordReadings(createReadingDTO: CreateReadingDto[]) {
+    const results = await this.readingRepository.save(createReadingDTO);
+    for (const result of results) {
+      this.sensorDataSubject.next(result);
+    }
 
-    return result;
+    return results;
   }
 
   async subscribeToReadings(
@@ -35,5 +38,21 @@ export class SensorDataService {
     return this.sensorDataSubject.subscribe({
       next: handler,
     });
+  }
+
+  async getAverage(sensor: string, type: string, duration: number) {
+    const readings = await this.readingRepository.find({
+      where: {
+        type,
+        sensor,
+        createdAt: MoreThan(new Date(Date.now() - duration * 1000)),
+      },
+    });
+    const total = readings.reduce(
+      (acc, reading) => acc + parseFloat(reading.value),
+      0,
+    );
+
+    return total / readings.length;
   }
 }

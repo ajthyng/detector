@@ -3,7 +3,7 @@ Content-Type: application/json
 
 {
   "co2": {
-    "value": 1123,
+    "value": 2311,
     "units": "ppm"
   },
   "temperature": {
@@ -17,7 +17,10 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:8080/api/v1/sensor-data/scd30
+GET http://localhost:8080/api/v1/sensor-data/scd30?types=co2,temperature
 
 ###
-GET http://localhost:8080/api/v1/sensor-data/subscribe/scd30
+GET http://localhost:8080/api/v1/sensor-data/average/scd30/co2?duration=60000
+
+###
+GET http://localhost:8080/api/v1/sensor-data/subscribe/scd30/co2?duration=60000
