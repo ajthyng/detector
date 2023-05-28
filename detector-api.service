@@ -1,0 +1,13 @@
+[Unit]
+Description=Detector API Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStartPre=/usr/bin/docker pull athyng/detector
+ExecStart=/usr/bin/docker run --rm -v /data/detector:/app --name detector athyng/detector
+ExecStop=/usr/bin/docker stop detector
+
+[Install]
+WantedBy=default.target

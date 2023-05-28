@@ -16,7 +16,6 @@ export class SensorDataService {
   }
 
   async getReadings(types: string[]) {
-    console.log(types);
     const [readings, count] = await this.readingRepository.findAndCount({
       where: { type: In(types) },
     });
