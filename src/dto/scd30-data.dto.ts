@@ -3,11 +3,11 @@ import { Type } from 'class-transformer';
 
 export class Quantity {
   @IsNumber()
-  value: number;
+  value: string;
 
   @IsString()
   @MinLength(1)
-  unit: string;
+  units: string;
 }
 
 export class SCD30DataDto {

@@ -1,18 +1,39 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import { CreateReadingDto } from '../dto/create-reading.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Reading } from '../entities/reading.entity';
+import { Repository } from 'typeorm';
+import { Subject } from 'rxjs';
 
 @Injectable()
 export class SensorDataService {
-  constructor(private prisma: PrismaService) {}
+  sensorDataSubject: Subject<CreateReadingDto & Reading>;
+
+  constructor(
+    @InjectRepository(Reading) private readingRepository: Repository<Reading>,
+  ) {
+    this.sensorDataSubject = new Subject();
+  }
 
   async getReadings() {
-    return this.prisma.reading.findMany();
+    const [readings, count] = await this.readingRepository.findAndCount({
+      take: 1,
+    });
+    return { readings, count };
   }
 
   async recordReadings(createReadingDTO: CreateReadingDto) {
-    return this.prisma.reading.create({
-      data: createReadingDTO,
+    const result = await this.readingRepository.save(createReadingDTO);
+    this.sensorDataSubject.next(result);
+
+    return result;
+  }
+
+  async subscribeToReadings(
+    handler: (data: CreateReadingDto & Reading) => void,
+  ) {
+    return this.sensorDataSubject.subscribe({
+      next: handler,
     });
   }
 }

@@ -1,6 +1,6 @@
 export class CreateReadingDto {
-  reading: string;
-  value: number;
-  unit: string;
+  type: string;
+  value: string;
+  units: string;
   sensor: string;
 }
