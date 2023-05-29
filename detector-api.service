@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/node /home/ajthyng/detector/dist/main.js
+ExecStart=/usr/local/bin/node /home/ajthyng/detector/dist/main.js
 WorkingDirectory=/home/ajthyng/detector
 Restart=always
 User=ajthyng
