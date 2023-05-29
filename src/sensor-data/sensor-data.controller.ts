@@ -8,6 +8,9 @@ import {
   TemperatureReadingDto,
 } from '../dto/create-reading.dto';
 import { ReadingsQueryDto } from '../dto/readings-query.dto';
+import { buildSSEMessage, setSSEResponseHeaders } from '../util/sse.helpers';
+import { SensorDataEvents } from './constants/sensor-data-events.enum';
+import { Readings } from './constants/readings.enum';
 
 @Controller('sensor-data')
 export class SensorDataController {
@@ -32,6 +35,7 @@ export class SensorDataController {
   async getReadings(@Query() query: ReadingsQueryDto) {
     const { readings, count } = await this.sensorDataService.getReadings(
       query.types,
+      query.from,
     );
 
     return {
@@ -47,17 +51,7 @@ export class SensorDataController {
     @Param('type') type: string,
     @Query('duration') duration: number,
   ) {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-
-    const initialAverage = await this.sensorDataService.getAverage(
-      sensor,
-      type,
-      duration,
-    );
-    res.write(`${Math.round(initialAverage * 100) / 100}\n\n`);
+    setSSEResponseHeaders(res);
 
     await this.sensorDataService.subscribeToReadings(async (data) => {
       if (data.sensor === sensor && data.type === type) {
@@ -66,7 +60,33 @@ export class SensorDataController {
           data.type,
           duration,
         );
-        res.write(`${Math.round(average * 100) / 100}\n\n`);
+
+        switch (data.type) {
+          case Readings.CO2:
+            res.write(
+              buildSSEMessage(
+                `{"value":${average},"unit":"${data.units}"}`,
+                SensorDataEvents.CO2_AVERAGE,
+              ),
+            );
+            break;
+          case Readings.TEMPERATURE:
+            res.write(
+              buildSSEMessage(
+                `{"value":${average},"unit":"${data.units}"}`,
+                SensorDataEvents.TEMPERATURE_AVERAGE,
+              ),
+            );
+            break;
+          case Readings.HUMIDITY:
+            res.write(
+              buildSSEMessage(
+                `{"value":${average},"unit":"${data.units}"}`,
+                SensorDataEvents.HUMIDITY_AVERAGE,
+              ),
+            );
+            break;
+        }
       }
     });
   }

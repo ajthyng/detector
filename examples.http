@@ -24,3 +24,6 @@ GET http://localhost:8080/api/v1/sensor-data/average/scd30/co2?duration=60000
 
 ###
 GET http://localhost:8080/api/v1/sensor-data/subscribe/scd30/co2?duration=60000
+
+###
+GET http://localhost:8080/api/v1/sensor-data/scd30?types=co2&from=2023-05-28T23:08:00.000-05:00

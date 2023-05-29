@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateReadingDto } from '../dto/create-reading.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Reading } from '../entities/reading.entity';
-import { In, MoreThan, Repository } from 'typeorm';
+import { In, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { Subject } from 'rxjs';
 
 @Injectable()
@@ -15,9 +15,9 @@ export class SensorDataService {
     this.sensorDataSubject = new Subject();
   }
 
-  async getReadings(types: string[]) {
+  async getReadings(types: string[], from: Date) {
     const [readings, count] = await this.readingRepository.findAndCount({
-      where: { type: In(types) },
+      where: { type: In(types), createdAt: MoreThanOrEqual(from) },
     });
     return { readings, count };
   }
@@ -52,6 +52,6 @@ export class SensorDataService {
       0,
     );
 
-    return total / readings.length;
+    return Math.round((total * 100) / readings.length) / 100;
   }
 }
